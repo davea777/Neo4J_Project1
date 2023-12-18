@@ -2,6 +2,7 @@ HISTORY
 Arrows.APP - CREATE (:Customer)-[:OWNS]->(:Account)-[:PURCHASED]->(:TICKER)-[:DAILYCLOSE]->(:DAILYCLOSE)<-[:DAILYCLOSE]-(:FUNDS)<-[:FUNDSHOLDING]-(n7),(n6)-[:PURCHASED]->(n8)
 Helpful commands: ( MATCH (n:XX) DETACH DELETE N)
 
+
 //1A   // EDIT - Each NODE has customer name
 LOAD CSV WITH HEADERS FROM 'file:///customers.csv' AS row
 CREATE (c:Customer {name: row.owner_name})
@@ -10,6 +11,7 @@ SET c += row
 
 
 //1B  //EDIT - Each node has account name
+
 LOAD CSV WITH HEADERS FROM 'file:///accounts.csv' AS row
 CREATE (:Account {name: row.customer_id,
 account_id : row.account_id,
@@ -52,7 +54,7 @@ purchase_date : row.purchase_date })
 
 
 //1E Establish relationships between Accounts and Funds
-*Relationship is shown on account_purchases.csv - account_id OWNS Ticker, number_of_shares and purchase_date
+*Relationship is shown on account_purchases.csv - ** account_id OWNS Ticker, number_of_shares and purchase_date
 Link Account purchases(account_id and ticker) with accounts
 
 Link Accounts(account_id, ticker) with Funds (ticker)
@@ -104,6 +106,13 @@ CREATE (account)-[:PURCHASED]->(Stock)
 CREATE (account)-[:PURCHASED]->(Fund)
 CREATE (Ticker)-[:MEMBER of]->(Stock)
 
+**Establish relationships for Holdings.
+
+LOAD CSV WITH HEADERS FROM 'file:///accounts.csv' AS row
+MATCH (account : Account {account_id : row.account_id })
+MATCH (fund:Fund) WHERE fund.fund_name = row.fund_name
+CREATE (account)-[:PURCHASED]->(STOCK)
+
 ***Link accounts and Funds
 
 LOAD CSV WITH HEADERS FROM 'file:///funds.csv' AS row
@@ -120,20 +129,40 @@ CREATE (fund)-[:HOLDS]->(account)
 
 
 
+Questions/ Answers
+2a - Ticker MSFT, account_id
+123457 - Alex Jones
+923457 - Ed Chowder  
+7009001 - Soham Dipkar
+
+2b - Ticker MSFT, (Fund)holding
+VDIGX holds MSFT - Vanguard Dividend Growth Fund - held 3  x Accounts
+VRNIX holds MSSFT - Vanguard Russell 1000 Index Fund - held 4 x Accounts
+VFIAX holds MSFT - Vanguard 500 Index Fund - held 5 x Accounts
+
+2c - 
+Match (fund_holding) fund_ticker
+Match (ticker) where
+
+2d - 
+Match (n:Customer) 
+WHERE owner_namd <>"Ed Chowder"
+RETURN Customer
+
+MATCH (customer:Customer {name: "Ed Chowder"})-[:HAS]->(account:Account)-[:HAS_FUND]->(fund:Fund)
+WHERE fund.close_date = date("2018-05-15")
+WITH fund.name AS fund_name, SUM(dailyclose) AS total_holdings
+ORDER BY fund_name ASC
+RETURN fund_name, total_holdings
 
 
+3
+3a)
 
+3b)
 
-
-
-
-
-**Establish relationships for Holdings.
-
-LOAD CSV WITH HEADERS FROM 'file:///accounts.csv' AS row
-MATCH (account : Account {account_id : row.account_id })
-MATCH (fund:Fund) WHERE fund.fund_name = row.fund_name
-CREATE (account)-[:PURCHASED]->(STOCK)
-
-
-
+3c)
+Interesting to see how we can bring together data to understand a relationship. Example: Being able to use a customer ID to uncover an account ID ,then expanding
+that out to understand stock purchase as an individual, and then through funds/mutual holdings has many applications for uncovering relationships and connections.
+Visualising graph makes complex queries easier to understand
+Being able to form many types of relationships.
